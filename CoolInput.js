@@ -1,13 +1,33 @@
-function CoolInput(slt,dataObj) {
+function CoolInput(setting) {
+    //setting.data;
+    //setting.slt;
     var _this = this; 
     _this.cursorPosition = -1;
     _this.cursorX = -1;
     _this.focused = false;
-    _this.inputEl = $(slt); 
+    _this.inputEl = $(setting.slt); 
+    
     var modelVar = _this.inputEl.attr('v-model');
     _this.inputEl.attr('readonly', 'readonly');
     if (_this.inputEl.length === 0) throw (slt + ' not exist');
     var input = _this.inputEl[0];
+
+    if (!CoolInput.arrInputEl) CoolInput.arrInputEl = [];
+    CoolInput.arrInputEl.push(input);
+    function IsPC() {
+        var userAgentInfo = navigator.userAgent;
+        var Agents = ["Android", "iPhone",  "Windows Phone", "iPad", "iPod"];
+        var flag = true;
+        for (var v = 0; v < Agents.length; v++) {
+            if (userAgentInfo.indexOf(Agents[v]) > 0) {
+                flag = false;
+                break;
+            }
+        }
+        return flag;
+    } 
+    var isOnPC = IsPC();
+
     function val(newV) {
         if (newV != undefined) {
             if (input.tagName === 'DIV') {
@@ -31,12 +51,18 @@ function CoolInput(slt,dataObj) {
         if (!tmpDiv) {
             tmpDiv = window.coolInputTmpDiv = $('<div style="position:fixed;display:block;z-index:99999;top:300px;left:100px;visibility:hidden;"><div>');
             $(document.body).append(tmpDiv);
-            var fontSize = _this.inputEl.css('font-size');
-            tmpDiv.css('font-size', fontSize);
-            tmpDiv.css('font-weight', _this.inputEl.css('font-weight')); 
+           
+            
            // tmpDiv.css('top', _this.inputEl.offset().top - 30 + 'px');
             //tmpDiv.css('left', _this.inputEl.offset().left + 'px');
         }
+        var fontSize = _this.inputEl.css('font-size');
+        tmpDiv.css('font-size', fontSize);
+        tmpDiv.css('font-weight', _this.inputEl.css('font-weight'));
+        var sp = _this.inputEl.css('letter-spacing');
+        tmpDiv.css('letter-spacing', sp); 
+        var fnt = _this.inputEl.css('font-family');
+        tmpDiv.css('font-family', fnt); 
         tmpDiv.html(txt);
         if (size) {
             size.height = tmpDiv[0].offsetHeight; size.width = tmpDiv[0].offsetWidth;
@@ -73,8 +99,16 @@ border-width:1px;border-style:solid;border-color:#cacaca;border-top-style:none;b
             $(document.body).append(Panel);
 
         }
-
-        Panel[0].ontouchstart=Panel[0].onmousedown = function (evt) {
+        if (isOnPC) {
+            Panel[0].onmousedown = onTouchPanel;
+        }
+        else
+            Panel[0].ontouchstart = onTouchPanel;
+        if (mouseDownEvent) {
+          //  mouseDownEvent.preventDefault();
+          //  mouseDownEvent.stopPropagation(); 
+        }
+         function onTouchPanel (evt) {
             var digit = evt.target.innerText;
             
             var txt = val();
@@ -114,14 +148,16 @@ border-width:1px;border-style:solid;border-color:#cacaca;border-top-style:none;b
                 var ffff = 8;
             }
             showCursor(true);
-            if (dataObj && modelVar) {
-                dataObj[modelVar] = val();
+            if (setting.data && modelVar) {
+                setting.data[modelVar] = val();
             }
         };
         if (!_this.focused) { 
-            _this.Panel.css('margin-bottom',- _this.Panel.height());
-            _this.Panel.show();
-            _this.Panel.animate({ 'margin-bottom': '0px'}, { duration: 400 });
+            if (_this.Panel.css('display') === 'none') {
+                _this.Panel.css('margin-bottom', - _this.Panel.height());
+                _this.Panel.show();
+                _this.Panel.animate({ 'margin-bottom': '0px' }, { duration: 400 });
+            } 
         }
 
         var top = _this.inputEl.offset().top;
@@ -153,9 +189,9 @@ border-width:1px;border-style:solid;border-color:#cacaca;border-top-style:none;b
             }
         }
 
-        if (!window.tmCoolInput) {
+        if (!_this.tmCoolInput) {
             var bShow = true;
-            window.tmCoolInput = setInterval(function () {
+            _this.tmCoolInput = setInterval(function () {
                 showCursor(bShow);
                 bShow = !bShow;
             }, 600);
@@ -172,10 +208,13 @@ border-width:1px;border-style:solid;border-color:#cacaca;border-top-style:none;b
             //getTextWidth('3', sz);
             //var ht=sz.height+2;
         }
-        var pad = 8;
+        var pad = 0;
         var cx = _this.inputEl.offset().left + _this.cursorX;
         var cy = _this.inputEl.offset().top;
-        _this.divCursor.height(_this.inputEl.height()-2*pad);
+        var ht = _this.inputEl.height();
+        if (ht >= 40) pad = 8;
+        else if (ht >= 30) pad = 3;
+        _this.divCursor.height(ht-2*pad);
         _this.divCursor.css('left', cx + 'px');
         _this.divCursor.css('top', cy+pad + 'px');
          
@@ -194,15 +233,24 @@ border-width:1px;border-style:solid;border-color:#cacaca;border-top-style:none;b
         //ignore the click on the panel
         if (evt.target.id === "coolInputPanel")
             return; 
+        if (evt.target  === input)
+            return; 
         var panelMum = $(evt.target).parents('#coolInputPanel');
         if (panelMum.length > 0) {
             return;
         }
-        if (evt.target != input) { 
-            if (!(_this.divCursor && _this.divCursor.length > 0 && evt.target === _this.divCursor[0])) {
-                if (window.tmCoolInput) {
-                    clearInterval(window.tmCoolInput); window.tmCoolInput = 0;
-                }
+        if (_this.divCursor && _this.divCursor.length > 0 && evt.target === _this.divCursor[0])
+            return;
+        var destIsInput = false;
+        CoolInput.arrInputEl.every(function (el) {
+            if (el === evt.target) {
+                destIsInput = true;
+                return false;
+            }
+            return true;
+        });
+        if (!destIsInput) {  
+              
                 if (_this.divCursor) {
                     _this.divCursor.hide();
                 }
@@ -212,10 +260,12 @@ border-width:1px;border-style:solid;border-color:#cacaca;border-top-style:none;b
                             _this.Panel.hide();
                         }
                     }); 
-                }
-                _this.focused = false;
-            }
+                } 
         }
+        if (_this.tmCoolInput) {
+            clearInterval(_this.tmCoolInput); _this.tmCoolInput = 0;
+        }
+        _this.focused = false;
     });
  
 }
