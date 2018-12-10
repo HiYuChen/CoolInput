@@ -2,12 +2,8 @@
 <html>
 <head>
        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no,viewport-fit=cover">
-   <meta name="apple-mobile-web-app-capable" content="yes">
-   <meta name="apple-mobile-web-app-status-bar-style" content="black"> 
-   <meta name="sharecontent" data-msg-img="你的缩略图地址" data-msg-title="你的标题1" data-msg-content="你的简介" data-msg-callBack="" data-line-img="你的缩略图地址" data-line-title="你的标题2" data-line-callBack=""/>
 
-    <meta name="format-detection" content="telephone=no">
-    <meta http-equiv="x-rim-auto-match" content="none"> 
+      
    <title>CoolInput Demo</title>
  
     <script src="jquery-1.12.4.min.js"></script>
@@ -17,19 +13,23 @@
  
 <body > 
   
-   <div>
-       <div>第1个输入:INPUT</div>
-       <input type="text" style="font-family:Arial; font-size:80px;font-weight:bold; width:90%;" id="amount" />
-       <div>第2个输入:DIV</div>
-       <div type="text" style="font-family:Arial;letter-spacing:0px; width:90%;height:90px;border-style:solid;border-color:#ddd;border-width:1px;font-size:80px;font-weight:bold;" id="amount1" ></div>
-
-   </div>
+   <div style="text-align:center;">
+       <div>First: INPUT</div><br />
+       <div>
+       <input type="text" id="amount" v-model="amount" style="font-family:Arial; font-size:40px;font-weight:bold; width:90%;"  />
+       </div><br />
+       <div>Second: DIV</div><br />
+       <div id="amount1" v-model="amount1" style="text-align:left;display:inline-block; font-family:Arial;letter-spacing:0px; width:90%;height:90px;border-style:solid;border-color:#ddd;border-width:1px;font-size:80px;font-weight:bold;"></div>
+       <button id="btnSubmit" style="margin-top:30px;width:80%; height:40px;background-color:#0d8;color:#fff;border-color:transparent;font-weight:bold;font-size:18px;" >Submit</button>
+    </div>
     <script>
         var data = {};
-        var coolInput = new CoolInput({ slt: '#amount', data: data });
+        var coolInput = new CoolInput({ slt: '#amount', data: data }); 
         coolInput.showPanel();
         var coolInput1 = new CoolInput({ slt: '#amount1', data: data });
-       
+        $('#btnSubmit').on('click', function () {
+            alert('the data you entered is amount:'+data.amount+' and amount1:'+data.amount1);
+        });
     </script>
 </body>
 </html>
