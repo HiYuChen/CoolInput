@@ -47,5 +47,6 @@ v-model="amount"  will be used to bound data and the input element
  
  Please run the demo.html for full test.
  
+ I've tested in Chrome,Safari,Edge. But it does not support IE
 
 
